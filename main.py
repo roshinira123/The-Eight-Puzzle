@@ -1,6 +1,6 @@
 import heapq
 import copy
-import TreeNode
+#import TreeNode
 
 
 #Puzzles to be inputted from the project psuedocode
@@ -59,13 +59,29 @@ def printPuzzle(puzzle):
     print("\n")
 
 
-
 ## More code needs to go here 
 
-def select_and_init_algorithm():
+def select_and_init_algorithm(puzzle):
     algorithm = input ("Select Algorithm. (1) Uniform Cost Search (2)Misplaced Tile Heuristic (3)Manhattan Distance Heuristic " + "\n")
 
     if algorithm == "1":
-        uniform_cost_search(puzzle, 0)
-    #if algorithm == "2":
+        general_search_algorithm(puzzle, uniform_cost_search)
+    if algorithm == "2":
+        general_search_algorithm(puzzle, misplaced_tile_heuristic)
+    if algorithm == "3":
+        general_search_algorithm(puzzle, manhattan_distance_heuristic)
         
+#implemented general search algorithm, then changed the heuristics for ucs, mth, and mdh.
+def general_search_algorithm(startPuzzle, heuristic):
+    return 
+
+
+def uniform_cost_search(puzzle):
+    return 0; #based on project writeup UCS is "A* with h(n) hardcoded to 0" hence returning 0
+
+def misplaced_tile_heuristic(puzzle):
+    return 
+
+def manhattan_distance_heuristic(puzzle):
+    return 
+
