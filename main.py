@@ -189,18 +189,26 @@ def general_search_algorithm(startPuzzle, heuristic):
 def uniform_cost_search(puzzle):
     return 0; #based on project writeup UCS is "A* with h(n) hardcoded to 0" and it uses the general search algo hence returning 0
 
-def misplaced_tile_heuristic(puzzle):
+def misplaced_tile_heuristic(puzzle): #need to compare to goal state then check how many tiles misplaced
     misplacedTiles = 0
-
+    for i in range(3):
+        for j in range(3):
+            if puzzle[i][j] != 0 and puzzle[i][j] != eight_goal_state[i][j]:
+                misplacedTiles += 1
+                
     return misplacedTiles
-
 
 def manhattan_distance_heuristic(puzzle):
     manDist = 0 
 
+    for i in range(3):
+        for j in range(3):
+            tile = puzzle[i][j]
+            if tile != 0:
+                goalRow = (tile -1) //3 # converted the divmod to this because it wasn't working
+                goalCol = (tile -1) % 3
+                manDist += abs(i - goalRow) + abs(j - goalCol)
     return manDist
-
-
 
 if __name__ == '__main__':
     main()
