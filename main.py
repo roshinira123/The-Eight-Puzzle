@@ -20,12 +20,31 @@ class TreeNode:
         self.total_cost = cost + heuristic  # f(n) = g(n) + h(n)
         self.parent = parent
 
-
-    def lowestCost(self, other):
+    def __lt__(self, other):
         return self.total_cost < other.total_cost
+
+    def solved(self):
+        return self.puzzle == eight_goal_state
    
     def board_to_tuple(self):
         return tuple(tuple(row) for row in self.puzzle)
+    
+    def generate_neighbors(self): #made generate neighbors inline, need to change code to improve readibility and understanding
+            moves = []
+            row, col = [(r, c) for r in range(3) for c in range(3) if self.puzzle[r][c] == 0][0]
+            directions = [(-1, 0), (1, 0), (0, -1), (0, 1)]
+
+
+            for dr, dc in directions:
+                new_row, new_col = row + dr, col + dc
+                if 0 <= new_row < 3 and 0 <= new_col < 3:
+                    new_puzzle = copy.deepcopy(self.puzzle)
+                    new_puzzle[row][col], new_puzzle[new_row][new_col] = new_puzzle[new_row][new_col], new_puzzle[row][col]
+                    moves.append(new_puzzle)
+                    #print("Generated neighbor:")
+                    #printPuzzle(new_puzzle)
+
+            return moves
 
 
 def main():
@@ -58,18 +77,23 @@ def init_default_puzzle_mode():
     selectedDiff = input("Choose the difficulty for the puzzle on scale of 0-4" + "\n")
     if selectedDiff == "0":
         print("Trivial selected")
+        printPuzzle(trivial)
         return trivial
     if selectedDiff == "1":
-        print("Trivial selected")
+        print("Very Easy selected")
+        printPuzzle(veryEasy)
         return veryEasy
     if selectedDiff == "2":
-        print("Trivial selected")
+        print("Easy selected")
+        printPuzzle(easy)
         return easy
     if selectedDiff == "3":
-        print("Trivial selected")
+        print("Doable selected")
+        printPuzzle(doable)
         return doable
     if selectedDiff == "4":
-        print("Trivial selected")
+        print("Oh Boy selected")
+        printPuzzle(oh_boy)
         return oh_boy
     #if selectedDiff == "5":
        # print("Trivial selected")
@@ -102,42 +126,55 @@ def select_and_init_algorithm(puzzle):
        
 #implemented general search algorithm, then changed the heuristics for ucs, mth, and mdh. I implemented it this way becuase it was easier for me to understand
 def general_search_algorithm(startPuzzle, heuristic):
-    startNode = TreeNode(startPuzzle, 0, heuristic)
-    working_queue= []
-    repeated_states = dict()
-    heapq.heappush(working_queue, startNode)
+    startNode = TreeNode(startPuzzle, 0, heuristic(startPuzzle))
+    workingQueue = []
+    repeatedStates = {}
+    heapq.heappush(workingQueue, startNode)
+
     nodesExpanded = 0
-    maxQueueSize = 0
-    repeated_states[tuple(map(tuple, startPuzzle))] = "This is the parent board"
-    stack = []
+    maxQueueSize = 1
+    repeatedStates[startNode.board_to_tuple()] = startNode.cost
 
+    
 
-    while len(working_queue) > 0:
-        maxQueueSize = max(maxQueueSize, len(working_queue))
-        currNode = heapq.heappop(working_queue)
-        currPuzzle = currNode.puzzle
-        currCost = currNode.cost
-        puzzTuple = tuple(map(tuple, currPuzzle))
-        repeated_states[currNode.board_to_tuple()] = "This can be anything"
-
-
-        if currPuzzle.puzzle == eight_goal_state:
-            while len(stack) > 0:
-                printPuzzle(stack.pop())
-            print("Number of nodes expanded:, nodesExpanded")
-            print("Max queue size:, maxQueueSize")
-            return currNode
+    while len(workingQueue) > 0:
+        maxQueueSize = max(len(workingQueue), maxQueueSize)
+        node_from_queue = heapq.heappop(workingQueue)
+        
+        #repeatedStates[node_from_queue.board_to_tuple()] = "This can be anything"
+        #nodesExpanded += 1
        
-        stack.append(currNode.puzzle)
+        #print(f"Expanding node: {node_from_queue.puzzle}") 
+
+        print(f"The best state to expand with g(n) = {node_from_queue.cost} and h(n) = {node_from_queue.heuristic} is...")
+        printPuzzle(node_from_queue.puzzle)
+
+
+        if node_from_queue.solved():
+            print("Solved!")
+            #while stackPrint:
+                #printPuzzle(stackPrint.pop()) did not work as I wanted it to
+            print("Depth:", node_from_queue.cost)
+            print("Number of nodes expanded:", nodesExpanded)
+            print("Max queue size:", maxQueueSize)
+            #printPath(node_from_queue)
+            return node_from_queue           
+   
         nodesExpanded += 1
 
+        # using operator code, need to fix to check if repeated states thing is working
+        for neighbor in node_from_queue.generate_neighbors():
+                child = TreeNode(neighbor, node_from_queue.cost + 1, heuristic(neighbor), node_from_queue)
+                child_tuple = child.board_to_tuple()
+                if child_tuple not in repeatedStates or repeatedStates[child_tuple] > child.cost:
+                    heapq.heappush(workingQueue, child)
+                    repeatedStates[child_tuple] = child.cost
 
-        for neighbor in generate_neighbors(currNode.puzzle):
-            child = TreeNode(currNode, neighbor, currNode.cost + 1, heuristic)
-            childTuple = child.board_to_tuple()
-            if childTuple not in repeated_states or repeated_states[childTuple] > child.total_cost:
-                repeated_states[childTuple] = child.total_cost
-                heapq.heappush(working_queue, child)
+    print("Failure: No solution found")
+    return None  
+
+    #print("Number of nodes expanded:", nodesExpanded)
+    #print("Max queue size:", maxQueueSize)
 
 
 def uniform_cost_search(puzzle):
@@ -145,48 +182,16 @@ def uniform_cost_search(puzzle):
 
 def misplaced_tile_heuristic(puzzle):
     misplacedTiles = 0
-
-
-    for i in range(3):
-        for j in range(3):
-            tile = puzzle[i][j]
-
-
-        if tile != 0 and tile != eight_goal_state[i][j]:
-            misplacedTiles += 1
-
+    #need to fix
 
     return misplacedTiles
 
 
 def manhattan_distance_heuristic(puzzle):
-    manDist = 0
-    for i in range(3):
-        for j in range(3):
-            tile = puzzle[i][j]
-            if tile != 0:
-                goalRow = (tile -1) //3
-                goalCol = (tile -1) % 3
-
-
-                manDist += abs(i - goalRow) + abs(j - goalCol)
+    manDist = 0 # needed to fix this
     return manDist
 
 
-def generate_neighbors(puzzle):
-    moves = []
-    row, col = [(r, c) for r in range(3) for c in range(3) if puzzle[r][c] == 0][0]
-    directions = [(-1, 0), (1, 0), (0, -1), (0, 1)]
-
-
-    for dr, dc in directions:
-        new_row, new_col = row + dr, col + dc
-        if 0 <= new_row < 3 and 0 <= new_col < 3:
-            new_puzzle = copy.deepcopy(puzzle)
-            new_puzzle[row][col], new_puzzle[new_row][new_col] = new_puzzle[new_row][new_col], new_puzzle[row][col]
-            moves.append(new_puzzle)
-
-    return moves
 
 if __name__ == '__main__':
     main()
