@@ -2,9 +2,6 @@ import heapq
 import copy
 #import TreeNode
 
-
-
-
 #Puzzles to be inputted from the project psuedocode
 trivial = [[1, 2, 3], [4, 5, 6], [7, 8, 0]]
 veryEasy = [[1, 2, 3], [4, 5, 6], [7, 0, 8]]
@@ -12,8 +9,6 @@ easy = [[1, 2, 0], [4, 5, 3], [7, 8, 6]]
 doable = [[0, 1, 2], [4, 5, 3], [7, 8, 6]]
 oh_boy = [[8, 7, 1], [6, 0, 2], [5, 4, 3]]
 eight_goal_state = [[1, 2, 3], [4, 5, 6], [7, 8, 0]]
-
-
 
 
 class TreeNode:
@@ -37,7 +32,7 @@ class TreeNode:
    
     def generate_neighbors(self):
         moves = []
-        directions = [(-1, 0), (1, 0), (0, -1), (0, 1)]  #move up, move down, move left, move right
+        directions = [(-1, 0), (1, 0), (0, -1), (0, 1)]  #move up, move down, move left, move right 
 
         zeroPosrow, zeroPoscol = None, None
         #gets the position of where the zero is in the board 
@@ -132,7 +127,6 @@ def printPath(node):
 def select_and_init_algorithm(puzzle):
     algorithm = input ("Select Algorithm. (1) Uniform Cost Search (2)Misplaced Tile Heuristic (3)Manhattan Distance Heuristic " + "\n")
 
-
     if algorithm == "1":
         general_search_algorithm(puzzle, uniform_cost_search)
     if algorithm == "2":
@@ -151,6 +145,7 @@ def general_search_algorithm(startPuzzle, heuristic):
     maxQueueSize = 1
     repeatedStates[startNode.board_to_tuple()] = startNode.cost
 
+
     while len(workingQueue) > 0:
         maxQueueSize = max(len(workingQueue), maxQueueSize)
         node_from_queue = heapq.heappop(workingQueue)
@@ -160,7 +155,7 @@ def general_search_algorithm(startPuzzle, heuristic):
        #print(f"Expanding node: {node_from_queue.puzzle}")
 
 
-        print(f"The best state to expand with g(n) = {node_from_queue.cost} and h(n) = {node_from_queue.heuristic} is...")
+        print(f"The state to expand with g(n) = {node_from_queue.cost} and h(n) = {node_from_queue.heuristic} is...")
         printPuzzle(node_from_queue.puzzle)
 
 
@@ -171,6 +166,7 @@ def general_search_algorithm(startPuzzle, heuristic):
             print("Depth:", node_from_queue.cost)
             print("Number of nodes expanded:", nodesExpanded)
             print("Max queue size:", maxQueueSize)
+            #print("Best State Path Below:")
             #printPath(node_from_queue)
             return node_from_queue          
    
@@ -195,13 +191,13 @@ def uniform_cost_search(puzzle):
 
 def misplaced_tile_heuristic(puzzle):
     misplacedTiles = 0
-    #need to fix
 
     return misplacedTiles
 
 
 def manhattan_distance_heuristic(puzzle):
-    manDist = 0 # needed to fix this
+    manDist = 0 
+
     return manDist
 
 
