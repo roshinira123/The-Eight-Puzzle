@@ -3,6 +3,8 @@ import copy
 #import TreeNode
 
 
+
+
 #Puzzles to be inputted from the project psuedocode
 trivial = [[1, 2, 3], [4, 5, 6], [7, 8, 0]]
 veryEasy = [[1, 2, 3], [4, 5, 6], [7, 0, 8]]
@@ -10,6 +12,8 @@ easy = [[1, 2, 0], [4, 5, 3], [7, 8, 6]]
 doable = [[0, 1, 2], [4, 5, 3], [7, 8, 6]]
 oh_boy = [[8, 7, 1], [6, 0, 2], [5, 4, 3]]
 eight_goal_state = [[1, 2, 3], [4, 5, 6], [7, 8, 0]]
+
+
 
 
 class TreeNode:
@@ -20,35 +24,46 @@ class TreeNode:
         self.total_cost = cost + heuristic  # f(n) = g(n) + h(n)
         self.parent = parent
 
-    def __lt__(self, other):
+
+    def __lt__(self, other): #finds the least cost
         return self.total_cost < other.total_cost
+
 
     def solved(self):
         return self.puzzle == eight_goal_state
    
     def board_to_tuple(self):
         return tuple(tuple(row) for row in self.puzzle)
-    
-    def generate_neighbors(self): #made generate neighbors inline, need to change code to improve readibility and understanding
-            moves = []
-            row, col = [(r, c) for r in range(3) for c in range(3) if self.puzzle[r][c] == 0][0]
-            directions = [(-1, 0), (1, 0), (0, -1), (0, 1)]
+   
+    def generate_neighbors(self):
+        moves = []
+        directions = [(-1, 0), (1, 0), (0, -1), (0, 1)]  #move up, move down, move left, move right
 
+        zeroPosrow, zeroPoscol = None, None
+        #gets the position of where the zero is in the board 
+        for r in range(3):
+            for c in range(3):
+                if self.puzzle[r][c] == 0:
+                    zeroPosrow, zeroPoscol = r, c
+                    break
+            if zeroPosrow is not None:
+                break
 
-            for dr, dc in directions:
-                new_row, new_col = row + dr, col + dc
-                if 0 <= new_row < 3 and 0 <= new_col < 3:
-                    new_puzzle = copy.deepcopy(self.puzzle)
-                    new_puzzle[row][col], new_puzzle[new_row][new_col] = new_puzzle[new_row][new_col], new_puzzle[row][col]
-                    moves.append(new_puzzle)
-                    #print("Generated neighbor:")
-                    #printPuzzle(new_puzzle)
+        #checks if the zero can move in that way
+        for rowOffset, columnOffset in directions:
+            newRow= zeroPosrow + rowOffset
+            newCol = zeroPoscol + columnOffset
+            if 0 <= newRow < 3 and 0 <= newCol < 3: #checks in the newRow and newCol are in the boundaries 
+                new_puzzle = copy.deepcopy(self.puzzle)
+                new_puzzle[zeroPosrow][zeroPoscol], new_puzzle[newRow][newCol] = new_puzzle[newRow][newCol], new_puzzle[zeroPosrow][zeroPoscol] #Swaps tiles 
+                
+                moves.append(new_puzzle) #adds the newpuzzle to the moves
 
-            return moves
-
+        return moves
 
 def main():
     puzzle_mode = input("Welcome to an 8-Puzzle Solver. Type '1' to use a default puzzle, or '2' to create your own." + "\n")
+
 
     if puzzle_mode == "1":
         select_and_init_algorithm(init_default_puzzle_mode())
@@ -70,9 +85,9 @@ def main():
        
         userPuzzle = [puzzle_r1, puzzle_r2, puzzle_r3]
         select_and_init_algorithm(userPuzzle)
-
-
+    
     return
+
 def init_default_puzzle_mode():
     selectedDiff = input("Choose the difficulty for the puzzle on scale of 0-4" + "\n")
     if selectedDiff == "0":
@@ -117,6 +132,7 @@ def printPath(node):
 def select_and_init_algorithm(puzzle):
     algorithm = input ("Select Algorithm. (1) Uniform Cost Search (2)Misplaced Tile Heuristic (3)Manhattan Distance Heuristic " + "\n")
 
+
     if algorithm == "1":
         general_search_algorithm(puzzle, uniform_cost_search)
     if algorithm == "2":
@@ -135,16 +151,14 @@ def general_search_algorithm(startPuzzle, heuristic):
     maxQueueSize = 1
     repeatedStates[startNode.board_to_tuple()] = startNode.cost
 
-    
-
     while len(workingQueue) > 0:
         maxQueueSize = max(len(workingQueue), maxQueueSize)
         node_from_queue = heapq.heappop(workingQueue)
-        
+
         #repeatedStates[node_from_queue.board_to_tuple()] = "This can be anything"
         #nodesExpanded += 1
-       
-        #print(f"Expanding node: {node_from_queue.puzzle}") 
+       #print(f"Expanding node: {node_from_queue.puzzle}")
+
 
         print(f"The best state to expand with g(n) = {node_from_queue.cost} and h(n) = {node_from_queue.heuristic} is...")
         printPuzzle(node_from_queue.puzzle)
@@ -153,16 +167,15 @@ def general_search_algorithm(startPuzzle, heuristic):
         if node_from_queue.solved():
             print("Solved!")
             #while stackPrint:
-                #printPuzzle(stackPrint.pop()) did not work as I wanted it to
+                #printPuzzle(stackPrint.pop())
             print("Depth:", node_from_queue.cost)
             print("Number of nodes expanded:", nodesExpanded)
             print("Max queue size:", maxQueueSize)
             #printPath(node_from_queue)
-            return node_from_queue           
+            return node_from_queue          
    
         nodesExpanded += 1
 
-        # using operator code, need to fix to check if repeated states thing is working
         for neighbor in node_from_queue.generate_neighbors():
                 child = TreeNode(neighbor, node_from_queue.cost + 1, heuristic(neighbor), node_from_queue)
                 child_tuple = child.board_to_tuple()
