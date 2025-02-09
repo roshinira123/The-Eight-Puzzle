@@ -1,6 +1,6 @@
 import heapq
 import copy
-#import TreeNode
+
 
 #Puzzles to be inputted from the project psuedocode
 trivial = [[1, 2, 3], [4, 5, 6], [7, 8, 0]]
@@ -8,6 +8,16 @@ veryEasy = [[1, 2, 3], [4, 5, 6], [7, 0, 8]]
 easy = [[1, 2, 0], [4, 5, 3], [7, 8, 6]]
 doable = [[0, 1, 2], [4, 5, 3], [7, 8, 6]]
 oh_boy = [[8, 7, 1], [6, 0, 2], [5, 4, 3]]
+
+#Puzzles of different depths from lecture slides in class for testing 
+depth_2 = [[1, 2, 3], [4, 5, 6], [0, 7, 8]]
+depth_4 = [[1, 2, 3], [5, 0, 6], [4, 7, 8]]
+depth_8 = [[1, 3, 6], [5, 0, 2], [4, 7, 8]]
+depth_12 = [[1, 3, 6], [5, 0, 7], [4, 8, 2]]
+depth_16 = [[1, 6, 7], [5, 0, 3], [4, 8, 2]]
+depth_20 = [[7, 1, 2], [4, 8, 5], [6, 3, 0]]
+depth_24 = [[0, 7, 2], [4, 6, 1], [3, 5, 8]]
+
 eight_goal_state = [[1, 2, 3], [4, 5, 6], [7, 8, 0]]
 
 
@@ -59,7 +69,6 @@ class TreeNode:
 def main():
     puzzle_mode = input("Welcome to an 8-Puzzle Solver. Type '1' to use a default puzzle, or '2' to create your own." + "\n")
 
-
     if puzzle_mode == "1":
         select_and_init_algorithm(init_default_puzzle_mode())
     if puzzle_mode == "2":
@@ -84,7 +93,7 @@ def main():
     return
 
 def init_default_puzzle_mode():
-    selectedDiff = input("Choose the difficulty for the puzzle on scale of 0-4" + "\n")
+    selectedDiff = input("Choose the difficulty for the puzzle on scale of 0-4 or 5-11 to get puzzles with different depths" + "\n")
     if selectedDiff == "0":
         print("Trivial selected")
         printPuzzle(trivial)
@@ -105,24 +114,51 @@ def init_default_puzzle_mode():
         print("Oh Boy selected")
         printPuzzle(oh_boy)
         return oh_boy
+    if selectedDiff == "5": #added these as cases so it would be easier for me to test the different depths and record values 
+        print("Depth 2 selected")
+        printPuzzle(depth_2)
+        return depth_2
+    if selectedDiff == "6":
+        print("Depth 4 selected")
+        printPuzzle(depth_4)
+        return depth_4
+    if selectedDiff == "7":
+        print("Depth 8 selected")
+        printPuzzle(depth_8)
+        return depth_8
+    if selectedDiff == "8":
+        print("Depth 12 selected")
+        printPuzzle(depth_12)
+        return depth_12
+    if selectedDiff == "9":
+        print("Depth 16 selected")
+        printPuzzle(depth_16)
+        return depth_16
+    if selectedDiff == "10":
+        print("Depth 20 selected")
+        printPuzzle(depth_20)
+        return depth_20
+    if selectedDiff == "11":
+        print("Depth 24 selected")
+        printPuzzle(depth_24)
+        return depth_24
     #if selectedDiff == "5":
        # print("Trivial selected")
         #return impossible
    
-def printPuzzle(puzzle):
-    for i in range(0,3):print(puzzle[i])
+def printPuzzle(puzzle): #general print function
+    for i in range(0,3):
+        print(puzzle[i])
     print("\n")
 
 
-def printPath(node):
+def printPath(node): #prints path of best state using parent node
     path = []
     while node:
         path.append(node.puzzle)
         node = node.parent
     for puzzle in reversed(path):
         printPuzzle(puzzle)
-## More code needs to go here
-
 
 def select_and_init_algorithm(puzzle):
     algorithm = input ("Select Algorithm. (1) Uniform Cost Search (2)Misplaced Tile Heuristic (3)Manhattan Distance Heuristic " + "\n")
@@ -150,9 +186,10 @@ def general_search_algorithm(startPuzzle, heuristic):
         maxQueueSize = max(len(workingQueue), maxQueueSize)
         node_from_queue = heapq.heappop(workingQueue)
 
+        #Debug statments:
         #repeatedStates[node_from_queue.board_to_tuple()] = "This can be anything"
         #nodesExpanded += 1
-       #print(f"Expanding node: {node_from_queue.puzzle}")
+        #print(f"Expanding node: {node_from_queue.puzzle}")
 
 
         print(f"The state to expand with g(n) = {node_from_queue.cost} and h(n) = {node_from_queue.heuristic} is...")
@@ -166,24 +203,27 @@ def general_search_algorithm(startPuzzle, heuristic):
             print("Depth:", node_from_queue.cost)
             print("Number of nodes expanded:", nodesExpanded)
             print("Max queue size:", maxQueueSize)
-            #print("Best State Path Below:")
+            #print("Best State Path Below:") #debug statement but can uncomment to see best path
             #printPath(node_from_queue)
             return node_from_queue          
    
         nodesExpanded += 1
 
-        for neighbor in node_from_queue.generate_neighbors():
+        for neighbor in node_from_queue.generate_neighbors(): 
+                #Creates node and updated with cost and h(n) value, then converts to tuple for comparison
                 child = TreeNode(neighbor, node_from_queue.cost + 1, heuristic(neighbor), node_from_queue)
                 child_tuple = child.board_to_tuple()
+                #Checks if has been visited before and less than previous cost 
                 if child_tuple not in repeatedStates or repeatedStates[child_tuple] > child.cost:
+                    #Adds to queue and updates repeatedStates
                     heapq.heappush(workingQueue, child)
                     repeatedStates[child_tuple] = child.cost
 
     print("Failure: No solution found")
     return None  
 
-    #print("Number of nodes expanded:", nodesExpanded)
-    #print("Max queue size:", maxQueueSize)
+    #print("Number of nodes expanded:", nodesExpanded) Debug statement
+    #print("Max queue size:", maxQueueSize) Debug statement
 
 
 def uniform_cost_search(puzzle):
@@ -195,10 +235,10 @@ def misplaced_tile_heuristic(puzzle): #need to compare to goal state then check 
         for j in range(3):
             if puzzle[i][j] != 0 and puzzle[i][j] != eight_goal_state[i][j]:
                 misplacedTiles += 1
-                
+
     return misplacedTiles
 
-def manhattan_distance_heuristic(puzzle):
+def manhattan_distance_heuristic(puzzle): #calculates distance of each tile from its goal state using absolute value
     manDist = 0 
 
     for i in range(3):
@@ -208,6 +248,7 @@ def manhattan_distance_heuristic(puzzle):
                 goalRow = (tile -1) //3 # converted the divmod to this because it wasn't working
                 goalCol = (tile -1) % 3
                 manDist += abs(i - goalRow) + abs(j - goalCol)
+                
     return manDist
 
 if __name__ == '__main__':
